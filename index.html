@@ -189,7 +189,7 @@ textarea{width:100%;min-height:64px;resize:vertical}
   </header>
 
   <aside class="panel lib" id="lib">
-    <div class="tabs"><button id="tabMedia" class="on">الوسائط</button><button id="tabEl">عناصر</button><button id="tabGen">توليد</button><button id="tabAsm">تجميع</button></div>
+    <div class="tabs"><button id="tabMedia" class="on">الوسائط</button><button id="tabEl">عناصر</button><button id="tabGen">توليد</button><button id="tabAsm">تجميع</button><button id="tabSrv">سيرفر</button></div>
     <div class="pane" id="paneMedia">
       <div class="dropzone" id="dz">
         <span>جر الفيديوهات، الصور ولا الموسيقى لهنا</span>
@@ -239,6 +239,30 @@ textarea{width:100%;min-height:64px;resize:vertical}
       <button class="btn" id="genLocal">حول نصي لمشاهد (بلا Claude)</button>
       <p class="gen-status" id="genStatus" role="status"></p>
       <p class="hint">الوضع بلا Claude كيحول كل سطر فالنص لمشهد.</p>
+    </div>
+    <div class="pane" id="paneSrv" hidden>
+      <div class="step">
+        <h3>سيرفر توليد الفيديو (BytePlus Seedance)</h3>
+        <p class="hint" id="srvNote" style="direction:rtl;text-align:right">كيصيفط الـ prompt للسيرفر وكيرجع الفيديو مباشرة للمكتبة. خاصك حساب BytePlus ModelArk ومفتاح API. الحصة المجانية والشروط كتتبدل، شوفها فحسابك قبل ما تستعمل. المفتاح كيبقى غير فمتصفحك.</p>
+        <label class="stack">مفتاح API<input id="srvKey" type="password" autocomplete="off" dir="ltr" placeholder="ARK_API_KEY"></label>
+        <label class="stack"><span><input type="checkbox" id="srvRemember"> تذكر المفتاح فهاد المتصفح</span></label>
+        <label class="stack">عنوان السيرفر<input id="srvBase" dir="ltr" value="https://ark.ap-southeast.bytepluses.com/api/v3"></label>
+        <label class="stack">النموذج<input id="srvModel" dir="ltr" value="dreamina-seedance-2-0-260128"></label>
+        <label class="stack">Prompt<textarea id="srvPrompt" dir="auto" placeholder="وصف المشهد بالإنجليزية كيعطي نتيجة أحسن"></textarea></label>
+        <label class="stack">صورة أول فريم (اختياري، من المكتبة)<select id="srvImg"><option value="">بلا صورة (نص لفيديو)</option></select></label>
+        <div class="pair">
+          <label class="stack">النسبة<select id="srvRatio"><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option><option>21:9</option></select></label>
+          <label class="stack">الطول<select id="srvDur"><option>4</option><option selected>5</option><option>8</option><option>10</option></select></label>
+        </div>
+        <div class="pair">
+          <label class="stack">الدقة<select id="srvRes"><option selected>480p</option><option>720p</option><option>1080p</option></select></label>
+          <label class="stack">علامة مائية<select id="srvWm"><option value="1">بعلامة</option><option value="0">بلا</option></select></label>
+        </div>
+        <button class="btn primary" id="srvBtn">ولد وزيدو للمكتبة</button>
+        <button class="btn" id="srvStop" hidden>وقف</button>
+        <p class="gen-status" id="srvStatus" role="status"></p>
+        <p class="hint" style="direction:rtl;text-align:right">إلا السيرفر ما قبلش الطلب من المتصفح (CORS)، غادي تبان رسالة. الحل: شغل الصفحة من GitHub Pages ولا محليا، ولا استعمل بروكسي ديالك فخانة "عنوان السيرفر".</p>
+      </div>
     </div>
     <div class="pane" id="paneAsm" hidden>
       <div class="step">
@@ -660,8 +684,8 @@ function updatePlayhead(follow){const x=S.time*S.zoom;$('#playhead').style.trans
 /* ---------- library panel ---------- */
 function renderLib(){
   const tab=S.libTab;
-  for(const[k,id]of[['media','Media'],['el','El'],['gen','Gen'],['asm','Asm']]){$('#tab'+id).classList.toggle('on',tab===k);$('#pane'+id).hidden=tab!==k}
-  refreshAsm();refreshChar();
+  for(const[k,id]of[['media','Media'],['el','El'],['gen','Gen'],['asm','Asm'],['srv','Srv']]){$('#tab'+id).classList.toggle('on',tab===k);$('#pane'+id).hidden=tab!==k}
+  refreshAsm();refreshChar();refreshSrv();
   const g=$('#mediaGrid');g.replaceChildren();
   for(const m of S.media.values()){
     const th=h('div',{class:'th'});if(m.thumb)th.style.backgroundImage=`url("${m.thumb}")`;else th.append(ic(m.type==='audio'?'music':'film'));
@@ -920,7 +944,7 @@ $('#importBtn').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{importFiles([...e.target.files]);e.target.value=''};
 $('#play').onclick=()=>setPlaying(!S.playing);$('#toStart').onclick=()=>seek(0);
 $('#splitBtn').onclick=splitAt;$('#delBtn').onclick=delClip;
-$('#tabMedia').onclick=()=>{S.libTab='media';renderLib()};$('#tabEl').onclick=()=>{S.libTab='el';renderLib()};$('#tabGen').onclick=()=>{S.libTab='gen';renderLib()};$('#tabAsm').onclick=()=>{S.libTab='asm';renderLib()};
+$('#tabMedia').onclick=()=>{S.libTab='media';renderLib()};$('#tabEl').onclick=()=>{S.libTab='el';renderLib()};$('#tabGen').onclick=()=>{S.libTab='gen';renderLib()};$('#tabAsm').onclick=()=>{S.libTab='asm';renderLib()};$('#tabSrv').onclick=()=>{S.libTab='srv';renderLib()};
 
 /* ---------- video generation: prompt -> storyboard -> timeline ---------- */
 const PALETTES=[['#1b1250','#6a5cff',160],['#c2185b','#ff8a3d',135],['#0f2027','#2c5364',180],['#08201d','#0b6e4f',150],['#3a0ca3','#f107a3',120],['#1d2671','#c33764',140],['#232526','#414345',170]];
@@ -1028,6 +1052,56 @@ $('#genLocal').onclick=()=>{const txt=$('#genPrompt').value.trim();if(!txt){gsta
 
 /* ---------- auto-assemble clips (e.g. Wan 2.2 outputs) ---------- */
 const astat=(msg,err)=>{const e=$('#asmStatus');e.textContent=msg||'';e.classList.toggle('err',!!err)};
+/* ---------- video server (BytePlus Seedance) ---------- */
+let srvCtl=null;
+function srvSay(t,err){const e=$('#srvStatus');e.classList.toggle('err',!!err);e.textContent=t}
+function refreshSrv(){
+  const sel=$('#srvImg');if(!sel||S.libTab!=='srv')return;const prev=sel.value;
+  sel.replaceChildren(h('option',{value:'',text:'بلا صورة (نص لفيديو)'}));
+  for(const m of S.media.values())if(m.type==='image')sel.append(h('option',{value:m.id,text:m.name}));
+  if(prev&&[...sel.options].some(o=>o.value===prev))sel.value=prev;
+  if(!$('#srvKey').value){try{const k=localStorage.getItem('montaj.srvKey');if(k){$('#srvKey').value=k;$('#srvRemember').checked=true}}catch(e){}}
+}
+function blobToDataURL(b){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)})}
+async function runSrv(){
+  const key=$('#srvKey').value.trim(),base=$('#srvBase').value.trim().replace(/\/+$/,''),prompt=$('#srvPrompt').value.trim();
+  if(!key){srvSay('دخل مفتاح API.',true);return}
+  if(!prompt){srvSay('كتب الـ prompt.',true);return}
+  try{if($('#srvRemember').checked)localStorage.setItem('montaj.srvKey',key);else localStorage.removeItem('montaj.srvKey')}catch(e){}
+  srvCtl=new AbortController();const sig=srvCtl.signal;
+  $('#srvBtn').disabled=true;$('#srvStop').hidden=false;
+  const hd={'Content-Type':'application/json','Authorization':'Bearer '+key};
+  try{
+    const content=[{type:'text',text:prompt}];
+    const im=S.media.get($('#srvImg').value);
+    if(im&&im.file){content.push({type:'image_url',image_url:{url:await blobToDataURL(im.file)},role:'first_frame'})}
+    srvSay('كيتصيفط الطلب…');
+    const r=await fetch(base+'/contents/generations/tasks',{method:'POST',headers:hd,signal:sig,body:JSON.stringify({model:$('#srvModel').value.trim(),content,ratio:$('#srvRatio').value,duration:+$('#srvDur').value,resolution:$('#srvRes').value,watermark:$('#srvWm').value==='1'})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.id)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+    const t0=Date.now();let url=null;
+    while(!url){
+      await new Promise(ok=>{const t=setTimeout(ok,5000);sig.addEventListener('abort',()=>{clearTimeout(t);ok()},{once:true})});
+      if(sig.aborted)throw new DOMException('abort','AbortError');
+      const q=await fetch(base+'/contents/generations/tasks/'+encodeURIComponent(j.id),{headers:hd,signal:sig});
+      const d=await q.json().catch(()=>({}));
+      if(!q.ok)throw new Error((d.error&&d.error.message)||('HTTP '+q.status));
+      srvSay('كيتولد… '+Math.round((Date.now()-t0)/1000)+' ث ('+(d.status||'?')+')');
+      if(d.status==='succeeded'){url=d.content&&d.content.video_url;if(!url)throw new Error('ما لقيتش رابط الفيديو فالجواب');}
+      else if(d.status==='failed'||d.status==='cancelled'||d.status==='expired')throw new Error((d.error&&d.error.message)||('الحالة: '+d.status));
+    }
+    srvSay('كيتحمل الفيديو…');
+    let blob;try{const v=await fetch(url,{signal:sig});if(!v.ok)throw 0;blob=await v.blob()}catch(e){if(e&&e.name==='AbortError')throw e;
+      const st=$('#srvStatus');st.classList.add('err');st.replaceChildren('تولد الفيديو، ولكن المتصفح ما خلاش نحملو مباشرة. ',h('a',{class:'lnk',href:url,target:'_blank',rel:'noopener',text:'حملو من هنا'}),' وستورده من تبويب الوسائط (الرابط كيموت من بعد شي وقت).');return}
+    await importFiles([new File([blob],'seedance_'+Date.now()+'.mp4',{type:blob.type||'video/mp4'})]);
+    srvSay('تم. الفيديو تزاد للمكتبة.');
+  }catch(e){
+    if(e&&e.name==='AbortError')srvSay('توقف.');
+    else srvSay((e instanceof TypeError?'المتصفح منع الاتصال بالسيرفر (غالبا CORS ولا مفتاح/عنوان غالط). ':'خطأ: ')+(e.message||''),true);
+  }finally{$('#srvBtn').disabled=false;$('#srvStop').hidden=true;srvCtl=null}
+}
+$('#srvBtn').onclick=runSrv;$('#srvStop').onclick=()=>{if(srvCtl)srvCtl.abort()};
+
 function refreshAsm(){
   const vids=[...S.media.values()].filter(m=>m.type!=='audio'),aud=[...S.media.values()].filter(m=>m.type==='audio');
   $('#asmInfo').textContent=vids.length?`فالمكتبة ${vids.length} مقطع/صورة${aud.length?` و${aud.length} موسيقى`:''}.`:'استورد المقاطع من تبويب "الوسائط" وغادي يتحسب عددها هنا.';
@@ -1165,15 +1239,4 @@ new ResizeObserver(fitCanvas).observe(wrap);
     mkText('مونطاج',{y:.2,start:.2,dur:5.8},{font:'Lalezar',size:15,stroke:3}),
     mkText('استورد الفيديوهات ديالك وبدا التعديل',{y:.34,start:.9,dur:5.1},{font:'Cairo',size:5.2,anim:'slide',shadow:false}),hero);
   resizeCanvas();renderAll();seek(1.2);
-  Promise.all(FONTS.map(f=>document.fonts.load(`700 40px "${f}"`,'مونطاج Abc'))).then(invalidate).catch(()=>{});
-  document.fonts.ready.then(invalidate);
-  last=performance.now();requestAnimationFrame(tick);
-  try{if(window.claude&&claude.use){
-    claude.use('downloads').then(d=>{dlCap=d||null}).catch(()=>{});
-    claude.use('sample').then(f=>{sampleCap=f||null;$('#genBtn').hidden=!sampleCap;$('#shotBtn').hidden=!sampleCap}).catch(()=>{})}}catch(e){}
-  window.__montaj={autoAssemble,beatCuts,buildScenes,scriptToScenes,S,addMediaClip,importFiles,splitAt,seek,setPlaying,duration,getExport:()=>window.__lastExport};
-})();
-})();
-</script>
-</body>
-</html>
+  Promise.all(FONTS
