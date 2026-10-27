@@ -60,3 +60,13 @@ capability exist only there).
 ## License
 
 MIT, see `LICENSE`.
+
+## سيرفر توليد الفيديو / Video server (BytePlus Seedance)
+
+تبويب **سيرفر** كيصيفط الـ prompt (وصورة أول فريم اختيارية) لـ BytePlus ModelArk، كيستنى الفيديو، وكيزيدو للمكتبة. كيخدم غير فالنسخة المستقلة (GitHub Pages ولا ملف محلي)، ماشي داخل claude.ai.
+The **Server** tab calls the BytePlus ModelArk video API (`POST /contents/generations/tasks`, then polls `GET /contents/generations/tasks/{id}`), downloads the result and imports it. Standalone build only.
+
+- You need your own ModelArk API key. Free quota and terms vary: check your account.
+- The key stays in your browser (optionally in localStorage). Never publish a page with a key in it.
+- If the browser blocks the call (CORS), run through your own proxy and put its URL in the server field.
+- Endpoint shape follows BytePlus' public SDK examples; the model id is editable if it changes.
