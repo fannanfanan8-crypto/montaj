@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Montaj test</title>
+<style>body{font:16px/1.6 sans-serif;padding:16px;background:#111;color:#eee}pre{white-space:pre-wrap;direction:ltr;background:#222;padding:10px;border-radius:8px}</style></head>
+<body><h2>Montaj: اختبار المتصفح</h2>
+<p id="s">JavaScript ما خدامش (إلا بقات هاد الجملة)</p><pre id="o"></pre>
+<script>
+var o=document.getElementById('o'),L=[];
+function t(n,f){var r;try{r=f()?'OK':'NO'}catch(e){r='ERR '+e.message}L.push(n+': '+r)}
+document.getElementById('s').textContent='JavaScript خدام';
+L.push('UA: '+navigator.userAgent);
+t('replaceChildren',function(){return !!document.body.replaceChildren});
+t('ResizeObserver',function(){return !!window.ResizeObserver});
+t('AudioContext',function(){return !!(window.AudioContext||window.webkitAudioContext)});
+t('MediaRecorder',function(){return !!window.MediaRecorder});
+t('captureStream',function(){return !!document.createElement('canvas').captureStream});
+t('document.fonts',function(){return !!document.fonts});
+t('AbortController',function(){return !!window.AbortController});
+t('Promise.all',function(){return !!Promise.all});
+t('fetch',function(){return !!window.fetch});
+t('Blob/URL',function(){return !!(window.Blob&&URL.createObjectURL)});
+t('optional chaining',function(){return eval('({a:1})?.a===1')});
+t('async/await',function(){return eval('(async()=>1)') && true});
+t('localStorage',function(){localStorage.setItem('x','1');return localStorage.getItem('x')==='1'});
+o.textContent=L.join('\n');
+// now try the real app in an iframe and report its errors
+var f=document.createElement('iframe');f.src='index.html';f.style.cssText='width:100%;height:60vh;border:1px solid #555;margin-top:12px';
+document.body.appendChild(f);
+</script></body></html>
