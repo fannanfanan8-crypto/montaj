@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ar">
 <head>
@@ -343,6 +344,24 @@ textarea{width:100%;min-height:64px;resize:vertical}
 </div>
 <div id="modalRoot"></div>
 
+<script>
+/* Compatibility shims + visible error banner (older Android browsers / WebViews). */
+(function(){
+  var E=Element.prototype;
+  if(!E.replaceChildren){E.replaceChildren=function(){while(this.firstChild)this.removeChild(this.firstChild);if(arguments.length)this.append.apply(this,arguments)};
+    if(window.DocumentFragment)DocumentFragment.prototype.replaceChildren=E.replaceChildren}
+  if(!E.append){E.append=function(){for(var i=0;i<arguments.length;i++){var a=arguments[i];this.appendChild(a instanceof Node?a:document.createTextNode(String(a)))}}}
+  if(!E.closest){E.closest=function(s){var n=this;while(n&&n.nodeType===1){if((n.matches||n.msMatchesSelector).call(n,s))return n;n=n.parentElement}return null}}
+  if(!Array.prototype.flat){Array.prototype.flat=function(){return this.reduce(function(a,b){return a.concat(b)},[])}}
+  if(!Object.fromEntries){Object.fromEntries=function(it){var o={};for(var e of it)o[e[0]]=e[1];return o}}
+  function show(msg){
+    try{var b=document.getElementById('errBanner');
+    if(!b){b=document.createElement('pre');b.id='errBanner';b.style.cssText='position:fixed;z-index:99999;left:0;right:0;bottom:0;margin:0;padding:10px;background:#7a1020;color:#fff;font:12px/1.4 monospace;white-space:pre-wrap;direction:ltr;max-height:40vh;overflow:auto';document.body.appendChild(b)}
+    b.textContent+=msg+'\n'}catch(e){}}
+  window.addEventListener('error',function(e){show('Error: '+e.message+' ('+(e.lineno||'?')+')')});
+  window.addEventListener('unhandledrejection',function(e){show('Promise: '+(e.reason&&e.reason.message||e.reason))});
+})();
+</script>
 <script>
 (()=>{
 'use strict';
@@ -1215,28 +1234,4 @@ $('#quality').onchange=e=>{S.quality=+e.target.value;resizeCanvas()};
 const dz=$('#dz');
 addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){e.preventDefault();dz.classList.add('over')}});
 addEventListener('dragleave',e=>{if(!e.relatedTarget)dz.classList.remove('over')});
-addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();dz.classList.remove('over');S.libTab='media';importFiles([...e.dataTransfer.files])}});
-addEventListener('keydown',e=>{
-  const tg=e.target;const typing=tg.matches&&tg.matches('input[type=text],input[type=number],textarea,select');
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return}
-  if(typing||exporting)return;
-  if(e.code==='Space'&&!(tg.matches&&tg.matches('button'))){e.preventDefault();setPlaying(!S.playing)}
-  else if(e.key==='s'||e.key==='S'){splitAt()}
-  else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();delClip()}
-  else if(e.key==='ArrowLeft'){e.preventDefault();seek(S.time-(e.shiftKey?1:1/30))}
-  else if(e.key==='ArrowRight'){e.preventDefault();seek(S.time+(e.shiftKey?1:1/30))}
-  else if(e.key==='Home'){seek(0)}
-});
-new ResizeObserver(fitCanvas).observe(wrap);
-
-/* ---------- boot ---------- */
-(function boot(){
-  initPresets();
-  // Starter project so the preview is alive on first load.
-  const hero=mkChar({},{start:0,dur:6,y:.7,fadeIn:.3});hero.char.keys=[{t:0,emotion:'excited',pose:'wave'},{t:2.6,emotion:'happy',pose:'idle'},{t:4.4,emotion:'happy',pose:'point'}];
-  S.clips.push(mkColor('#6a5cff','#1b1250',160,{dur:6}),
-    mkText('مونطاج',{y:.2,start:.2,dur:5.8},{font:'Lalezar',size:15,stroke:3}),
-    mkText('استورد الفيديوهات ديالك وبدا التعديل',{y:.34,start:.9,dur:5.1},{font:'Cairo',size:5.2,anim:'slide',shadow:false}),hero);
-  resizeCanvas();renderAll();seek(1.2);
-  Promise.all(FONTS
+addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length){e.
